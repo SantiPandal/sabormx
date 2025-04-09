@@ -1,7 +1,7 @@
 // This is our dashboard page
 // It will display restaurants and bars in different categories
 
-import supabase from '@/utils/supabase';
+import { supabase } from '@/utils/supabase';
 import { Restaurants, Bars } from '@/types/database';
 
 // This makes the page dynamic so it fetches fresh data on each request
@@ -9,26 +9,44 @@ export const dynamic = 'force-dynamic';
 
 // Server Component to fetch and display data
 export default async function Dashboard() {
+  console.log('Starting to fetch data...');
+  
   // Fetch restaurants and bars from our database
-  const { data: restaurants } = await supabase
+  const { data: restaurants, error: restaurantError } = await supabase
     .from('restaurants')
     .select('*');
   
-  const { data: bars } = await supabase
+  if (restaurantError) {
+    console.error('Error fetching restaurants:', restaurantError);
+  } else {
+    console.log('Fetched restaurants:', restaurants?.length || 0);
+  }
+
+  const { data: bars, error: barError } = await supabase
     .from('bars')
     .select('*');
 
+  if (barError) {
+    console.error('Error fetching bars:', barError);
+  } else {
+    console.log('Fetched bars:', bars?.length || 0);
+  }
+
   // Filter for hot spots
   const hotSpots = [
-    ...(restaurants?.filter(r => r.is_hot_spot) || []),
-    ...(bars?.filter(b => b.vibrant_nightlife) || [])
+    ...(restaurants?.filter((r: Restaurants) => r.is_hot_spot) || []),
+    ...(bars?.filter((b: Bars) => b.vibrant_nightlife) || [])
   ];
+  
+  console.log('Hot spots found:', hotSpots.length);
   
   // Filter for date spots (from both restaurants and bars)
   const dateSpots = [
-    ...(restaurants?.filter(r => r.good_for_date) || []),
-    ...(bars?.filter(b => b.good_for_date) || [])
+    ...(restaurants?.filter((r: Restaurants) => r.good_for_date) || []),
+    ...(bars?.filter((b: Bars) => b.good_for_date) || [])
   ];
+
+  console.log('Date spots found:', dateSpots.length);
 
   return (
     <main className="p-8">
