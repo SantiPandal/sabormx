@@ -2,7 +2,7 @@
 // In Next.js 13+ App Router, API endpoints are defined as route handlers
 
 import { NextResponse } from 'next/server';
-import supabase from '@/utils/supabase';
+import supabase from '@/utils/providers/supabase';
 
 // GET handler to fetch all restaurants
 export async function GET() {
