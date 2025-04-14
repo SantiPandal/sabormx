@@ -1,12 +1,19 @@
 import { RestaurantRawData } from './types';
 import FirecrawlApp, { ScrapeResponse } from '@mendable/firecrawl-js';
+import dotenv from 'dotenv';
+
+// Load environment variables from .env.local
+dotenv.config({ path: '.env.local' });
 
 // Environment variables should be used for API keys
 // Add FC_API_KEY to your .env file
-const API_KEY = process.env.FC_API_KEY || '';
+const FIRECRAWL_API_KEY = process.env.FIRECRAWL_API_KEY || '';
+
+// Log for debugging - remove after fixing
+console.log('Firecrawl API Key from scraper.ts:', !!FIRECRAWL_API_KEY);
 
 // Initialize the Firecrawl app
-const firecrawl = new FirecrawlApp({apiKey: API_KEY});
+const firecrawl = new FirecrawlApp({apiKey: FIRECRAWL_API_KEY});
 
 /**
  * Scrapes restaurant data from a given URL
@@ -15,6 +22,11 @@ const firecrawl = new FirecrawlApp({apiKey: API_KEY});
  */
 export async function scrapeRestaurantData(url: string): Promise<RestaurantRawData> {
   try {
+    // Check if API key is present
+    if (!FIRECRAWL_API_KEY) {
+      throw new Error('Firecrawl API key is missing. Please add FIRECRAWL_API_KEY to your .env file.');
+    }
+    
     console.log(`Starting to scrape: ${url}`);
     
     // Use Firecrawl to scrape the website
@@ -39,6 +51,15 @@ export async function scrapeRestaurantData(url: string): Promise<RestaurantRawDa
     };
   } catch (error) {
     console.error('Error in scrapeRestaurantData:', error);
+    
+    // Check for common API errors
+    if (error instanceof Error) {
+      if (error.message.includes('401')) {
+        console.error('API KEY AUTHENTICATION ERROR: Your Firecrawl API key is invalid or expired.');
+        console.error('Please check your .env file and make sure FIRECRAWL_API_KEY has the correct value.');
+      }
+    }
+    
     throw new Error(`Failed to scrape data from ${url}: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }

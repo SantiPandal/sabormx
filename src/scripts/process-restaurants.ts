@@ -1,3 +1,7 @@
+// Load environment variables first
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
+
 /**
  * This script processes restaurant websites and saves the data to the database.
  * It can be run on a schedule (e.g., once a day) using a cron job or similar.
@@ -7,11 +11,14 @@
 
 import { batchProcessRestaurants, isWebsiteProcessed } from '../utils/ai-workflow';
 
+// Debug: Check if API key is present
+const FIRECRAWL_API_KEY = process.env.FIRECRAWL_API_KEY;
+console.log('Firecrawl API Key exists:', !!FIRECRAWL_API_KEY);
+
 // Add your restaurant URLs here
 const RESTAURANT_URLS = [
-  'https://www.example-restaurant1.com',
-  'https://www.example-restaurant2.com',
-  'https://www.example-restaurant3.com',
+  'https://cdmxsecreta.com/comer-y-beber/',
+  'https://mbmarcobeteta.com/ciudad/cdmx/',
   // Add more restaurant websites here
 ];
 

@@ -2,6 +2,9 @@ import { RestaurantRawData, RestaurantSchema } from './types';
 import { openai } from '@ai-sdk/openai';
 import { generateObject } from 'ai';
 
+// Get the API key from environment variables
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
+
 /**
  * Simple data structure for restaurant information
  */
@@ -39,6 +42,11 @@ export async function processRestaurantData(rawData: RestaurantRawData): Promise
     throw new Error('No website content available to process');
   }
   
+  // Check if OpenAI API key is available
+  if (!OPENAI_API_KEY) {
+    throw new Error('OpenAI API key is missing. Please add OPENAI_API_KEY to your .env file.');
+  }
+  
   try {
     // Step 2: Get the website content (prefer markdown if available)
     const websiteContent = rawData.rawMarkdown || rawData.rawHtml || '';
@@ -52,7 +60,8 @@ export async function processRestaurantData(rawData: RestaurantRawData): Promise
         Analyze the following restaurant data:
         
         ${websiteContent.substring(0, 15000)}
-      `
+      `,
+      // Add any other required configuration
     });
     
     // Step 4: Get the extracted restaurant data
@@ -71,6 +80,18 @@ export async function processRestaurantData(rawData: RestaurantRawData): Promise
   } catch (error) {
     // Handle any errors that occurred
     console.error('Something went wrong during processing:', error);
+    
+    // Add better debugging information for OpenAI API key errors
+    if (error instanceof Error) {
+      if (error.message.includes('Incorrect API key provided') || error.message.includes('invalid_api_key')) {
+        console.error('OpenAI API KEY ERROR: Your OpenAI API key is invalid or has incorrect format.');
+        console.error('Please check the following:');
+        console.error('1. Ensure your OPENAI_API_KEY in .env file is correct and doesn\'t have extra quotes or spaces');
+        console.error('2. Make sure you\'re using a standard OpenAI API key (starts with sk-)');
+        console.error('3. If using a Vercel AI SDK project key (starts with sk-proj-), you need to configure the AI SDK properly');
+      }
+    }
+    
     throw new Error(`Failed to process restaurant data: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
